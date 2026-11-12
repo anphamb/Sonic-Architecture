@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sonic Architecture</title>
+  <meta name="description" content="Turn sound into architecture. Louder sound builds taller towers, heavy bass pours bigger blocks. Record, load a track, or play the demo.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231F4FE0'/%3E%3Crect x='5' y='17' width='6' height='11' fill='%23FFE422'/%3E%3Crect x='13' y='6' width='7' height='22' fill='%23fff'/%3E%3Crect x='22' y='12' width='5' height='16' fill='%23F2481B'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="fonts/archivo.css">
+  <link rel="stylesheet" href="fonts/marker.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- Rough print texture for the title -->
+<svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">
+  <filter id="grunge" x="-5%" y="-5%" width="110%" height="110%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="4" result="noise"/>
+    <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.5" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<div class="app" id="app">
+
+  <header class="flyer-head">
+    <h1 class="grunge-title"><span>Sonic</span> <span>Architecture</span></h1>
+    <div class="head-mid">
+      <p class="scrawl scrawl-mid" aria-hidden="true">turn it up!</p>
+      <p class="bubble">Higher = taller</p>
+    </div>
+    <div class="head-right">
+      <p class="hot">Sound</p>
+      <p class="hot hot-small">to city</p>
+      <p class="scrawl scrawl-right" aria-hidden="true">live in your browser</p>
+    </div>
+    <p class="strap">Every word or note becomes a building. High pitch builds tall, heavy bass builds wide.<br>Press play, or talk, sing or whistle, and watch the city grow.</p>
+    <svg class="doodle" viewBox="0 0 100 90" aria-hidden="true"><path d="M50 84 C20 62 4 46 6 26 C8 10 26 2 40 10 C46 13 49 18 50 22 C52 16 58 9 66 7 C82 3 96 16 93 32 C90 50 74 64 50 84Z"/><path d="M28 30 h44 M28 44 h44 M38 22 v38 M62 22 v38"/></svg>
+  </header>
+
+  <main class="stage ticket">
+    <div class="ticket-inner stage-inner">
+      <div class="viewport" id="viewport">
+        <div class="empty" id="emptyState">
+          <p>Nothing built yet</p>
+          <p>Record a few seconds of sound, load a track, or press Demo, then press play.</p>
+        </div>
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+        <div class="sticker" aria-hidden="true">
+          <span>made from sound</span><span>made from sound</span><span>made from sound</span><span>made from sound</span><span>made from sound</span>
+        </div>
+        <p id="stats" class="stats" aria-hidden="true"></p>
+        <p class="nav-hint" aria-hidden="true">Drag to turn · Right-drag to move · Scroll to zoom</p>
+      </div>
+
+      <div class="source-row">
+        <div class="rec-group">
+          <button id="btnRecord" class="pill" type="button" aria-pressed="false">
+            <span class="rec-dot" aria-hidden="true"></span><span class="btn-label">Record</span>
+          </button>
+          <label class="mic-pick">
+            <span class="visually-hidden">Microphone</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11h-2z"/></svg>
+            <select id="micSelect"><option value="">Default microphone</option></select>
+          </label>
+        </div>
+        <label class="pill" for="fileInput">Load file</label>
+        <input type="file" id="fileInput" accept="audio/*" class="visually-hidden">
+        <button id="btnDemo" class="pill" type="button">Demo</button>
+        <button id="btnRestart" class="pill pill-dark" type="button" disabled>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg><span>Back to start</span>
+        </button>
+        <p class="source-meta"><span id="sourceName" class="source-name">No sound yet</span><span class="hint">or drop an audio file anywhere</span></p>
+      </div>
+
+      <div class="deck">
+        <div class="transport">
+          <button id="btnPlay" class="btn-play" type="button" disabled aria-label="Play">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path class="icon-play" d="M8 4 L20 12 L8 20 Z"/><g class="icon-pause"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></g></svg>
+          </button>
+          <span id="timeDisplay" class="time">0:00 / 0:00</span>
+          <button id="btnSpeed" class="btn-speed" type="button" aria-label="Playback speed 1 times. Click to change.">1×</button>
+        </div>
+        <figure class="meter">
+          <canvas id="spectrum" aria-hidden="true"></canvas>
+          <figcaption id="spectrumLabel">Spectrum</figcaption>
+        </figure>
+        <figure class="section-drawing">
+          <canvas id="timeline" tabindex="0" role="slider" aria-label="Layer timeline: use arrow keys to move between layers" aria-valuemin="1" aria-valuemax="1" aria-valuenow="1"></canvas>
+          <figcaption>Section drawing: one column per moment, bass at the bottom. Click to jump.</figcaption>
+        </figure>
+        <div class="barcode" aria-hidden="true"><span>0 4 2 1 9 3</span></div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="controls ticket" aria-label="Controls">
+    <div class="ticket-inner controls-inner">
+
+      <section class="block" aria-labelledby="h-form">
+        <h2 id="h-form" class="tag">Pick a form</h2>
+        <fieldset class="modes">
+          <legend class="visually-hidden">Structure</legend>
+          <label class="mode">
+            <input type="radio" name="mode" value="city" checked>
+            <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="17" width="6" height="12"/><path d="M1.5 17 L5 13 L8.5 17Z"/><rect x="10" y="7" width="7" height="22"/><rect x="19" y="12" width="5" height="17"/><rect x="25.5" y="19" width="5" height="10"/><path d="M25 19 L28 16 L31 19Z"/></svg>
+            <b>City</b><small>One building per word, block by block</small>
+          </label>
+          <label class="mode">
+            <input type="radio" name="mode" value="tower">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="6" y="24" width="20" height="5"/><rect x="10" y="12" width="12" height="12"/><rect x="11.5" y="6" width="9" height="6"/><rect x="13.5" y="2" width="5" height="4"/></svg>
+            <b>Tower</b><small>One storey per moment</small>
+          </label>
+          <label class="mode mode-wide">
+            <input type="radio" name="mode" value="river">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="6" width="5" height="8"/><rect x="8" y="2" width="5" height="12"/><rect x="14" y="7" width="4" height="7"/><rect x="20" y="4" width="5" height="10"/><path d="M0 17c5-2 9 2 16 0s11-2 16 0v4c-5-2-9 2-16 0S5 19 0 21z" opacity=".55"/><rect x="4" y="23" width="5" height="7"/><rect x="11" y="24" width="6" height="6"/><rect x="19" y="22" width="4" height="8"/><rect x="25" y="25" width="5" height="5"/></svg>
+            <b>River</b><small>Words fill both banks; bridges mark new passages</small>
+          </label>
+        </fieldset>
+      </section>
+
+      <section class="block" aria-labelledby="h-tune">
+        <h2 id="h-tune" class="tag">Tune it</h2>
+        <div class="sliders">
+          <label class="slider">
+            <span class="slider-head"><span>Height</span><output id="outHeight">1.0</output></span>
+            <input type="range" id="height" min="0.3" max="2" step="0.05" value="1">
+          </label>
+          <label class="slider">
+            <span class="slider-head"><span>Bass weight</span><output id="outBass">1.0</output></span>
+            <input type="range" id="bassMass" min="0.2" max="2" step="0.05" value="1">
+          </label>
+          <label class="slider">
+            <span class="slider-head"><span>Treble detail</span><output id="outSpikes">1.0</output></span>
+            <input type="range" id="spikes" min="0" max="2" step="0.05" value="1">
+          </label>
+          <label class="slider">
+            <span class="slider-head"><span>Detail</span><output id="outLayers">140</output></span>
+            <input type="range" id="layers" min="60" max="1500" step="10" value="140">
+          </label>
+        </div>
+
+        <fieldset class="palettes">
+          <legend>Colours</legend>
+          <label class="swatch"><input type="radio" name="palette" value="flyer" checked><span class="chip chip-flyer" aria-hidden="true"></span>Flyer</label>
+          <label class="swatch"><input type="radio" name="palette" value="pitch"><span class="chip chip-pitch" aria-hidden="true"></span>Pitch</label>
+          <label class="swatch"><input type="radio" name="palette" value="daylight"><span class="chip chip-daylight" aria-hidden="true"></span>Daylight</label>
+          <label class="swatch"><input type="radio" name="palette" value="maquette"><span class="chip chip-maquette" aria-hidden="true"></span>White model</label>
+          <label class="swatch"><input type="radio" name="palette" value="night"><span class="chip chip-night" aria-hidden="true"></span>Night</label>
+        </fieldset>
+        <div class="pitch-legend" id="pitchLegend" hidden>
+          <span>Low notes</span><i aria-hidden="true"></i><span>High notes</span>
+        </div>
+
+        <fieldset class="cam-modes">
+          <legend>Camera</legend>
+          <label class="seg"><input type="radio" name="cam" value="drag" checked><span>Drag</span></label>
+          <label class="seg"><input type="radio" name="cam" value="follow"><span>Follow mouse</span></label>
+          <label class="seg"><input type="radio" name="cam" value="spin"><span>Spin</span></label>
+        </fieldset>
+
+        <div class="form-actions">
+          <button id="btnShuffle" class="pill pill-small" type="button">New variation</button>
+
+        </div>
+      </section>
+
+      <section class="block" aria-labelledby="h-out">
+        <h2 id="h-out" class="tag">Take it home</h2>
+        <div class="output-buttons">
+          <button id="btnPng" class="pill pill-small" type="button" disabled>Save PNG</button>
+          <button id="btnGlb" class="pill pill-small" type="button" disabled>Save 3D (GLB)</button>
+        </div>
+      </section>
+
+      <section class="block key" aria-labelledby="h-key">
+        <h2 id="h-key" class="tag tag-dark">How it builds</h2>
+        <dl>
+          <div><dt><span class="key-chip key-loud" aria-hidden="true"></span>Pitch</dt><dd>How tall: each word or note is a building, its highest pitch sets the height, and it never shrinks</dd></div>
+          <div><dt><span class="key-chip key-bass" aria-hidden="true"></span>Bass</dt><dd>How wide: footprints and plot sizes</dd></div>
+          <div><dt><span class="key-chip key-high" aria-hidden="true"></span>Highs</dt><dd>Facades: brick for dark sounds, glass and balconies for bright ones</dd></div>
+        </dl>
+        <p class="scrawl scrawl-note">pauses grow parks, new passages open new blocks</p>
+      </section>
+    </div>
+  </aside>
+</div>
+
+<div class="drop-veil" id="dropVeil" aria-hidden="true"><p>Drop it to build</p></div>
+
+<script src="vendor/three.bundle.js"></script>
+<script src="sketch.js"></script>
+</body>
+</html>
